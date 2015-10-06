@@ -3,11 +3,27 @@
 #define PROG_SCK 5
 #define PROG_RST 6
 
+#define DUMMY_DATA 0xAA
+
 
 /**
  * Envia dados SPI. O MSB é enviado primeiro.
+ * 
+ * param data Dado a ser enviado para o uC.
+ * 
+ * return Retorna o byte de acknowledge do uC.
  */
 uint8_t send_data(uint8_t data);
+
+/**
+ * Habilita programação.
+ */
+void prog_enable();
+
+/**
+ * Apaga o programa no uC.
+ */
+void chip_rease();
 
 
 void setup() {
@@ -50,5 +66,21 @@ uint8_t send_data(uint8_t data)
     digitalWrite(PROG_SCK, LOW);
     delayMicroseconds(3);
   }
+}
+
+void prog_enable()
+{
+  send_data(0xAC);
+  send_data(0x53);
+  send_data(DUMMY_DATA);
+  send_data(DUMMY_DATA);
+}
+
+void chip_erase()
+{
+  send_data(0xAC);
+  send_data(0x80);
+  send_data(DUMMY_DATA);
+  send_data(DUMMY_DATA);
 }
 
