@@ -25,6 +25,13 @@ void prog_enable();
  */
 void chip_rease();
 
+/**
+ * Escreve na memoria de programa no modo byte.
+ * 
+ * param addr Endereço da memoria de programa de 2 bytes.
+ * param data Data para ser gravado na memoria de programa.
+ */
+void write_progmem_byte(uint16_t addr, uint8_t data);
 
 void setup() {
   // put your setup code here, to run once:
@@ -95,5 +102,16 @@ void chip_erase()
   send_data(0x80);
   send_data(DUMMY_DATA);
   send_data(DUMMY_DATA);
+}
+
+void write_progmem_byte(uint16_t addr, uint8_t data)
+{
+  uint8_t high_addr = ( (addr & 0xF0) >> 8 );
+  uint8_t low_addr = ( addr & 0x0F );
+
+  send_data(0x40);
+  send_data(high_addr);
+  send_data(low_addr);
+  send_data(data);
 }
 
