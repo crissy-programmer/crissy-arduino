@@ -28,12 +28,25 @@ void chip_rease();
 
 void setup() {
   // put your setup code here, to run once:
+  pinMode(PROG_MOSI, OUTPUT);
+  pinMode(PROG_MISO, INPUT);
+  pinMode(PROG_SCK, OUTPUT);
+  pinMode(PROG_RST, OUTPUT);
 
+  // Gravação
+  
+  // 1: RST -> High
+  digitalWrite(PROG_RST, HIGH);
+  delay(1);
+
+  // 2: Programming Enable
+  prog_enable();
+
+  // 3: Chip Erase
+  chip_erase();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-
 }
 
 uint8_t send_data(uint8_t data)
