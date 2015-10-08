@@ -34,6 +34,10 @@ void chip_rease();
 void write_progmem_byte(uint16_t addr, uint8_t data);
 
 void setup() {
+
+  // Debug
+  Serial.begin(9600);
+  
   // put your setup code here, to run once:
   pinMode(PROG_MOSI, OUTPUT);
   pinMode(PROG_MISO, INPUT);
@@ -43,17 +47,60 @@ void setup() {
   // Gravação
   
   // 1: RST -> High
-  digitalWrite(PROG_RST, HIGH);
-  delay(1);
+  digitalWrite(PROG_RST, LOW);
+  //delay(1);
 
   // 2: Programming Enable
-  prog_enable();
+  //prog_enable();
 
   // 3: Chip Erase
-  chip_erase();
+ // chip_erase();
+
+  // 4: Gravar
+  //write_progmem_byte(0x0000, 0xC2);
+  //write_progmem_byte(0x0001, 0xA0);
 }
 
 void loop() {
+  if(Serial.available() > 0) {
+    char c = Serial.read();
+
+    switch(c)
+    {
+      case 's':
+        Serial.println("Vou habilitar gravacao");
+        digitalWrite(PROG_RST, HIGH);
+        delay(1);
+        prog_enable();
+        break;
+        
+      case 'e':
+        Serial.println("Vou apagar o chip");
+        chip_erase();
+        break;
+
+      case '1':
+        Serial.println("Vou gravar o codigo de um led");
+        write_progmem_byte(0x0000, 0xC2);
+        write_progmem_byte(0x0001, 0xA0);
+        break;
+
+      case '2':
+        Serial.println("Vou gravar o codigo de dois leds");
+        write_progmem_byte(0x0000, 0xC2);
+        write_progmem_byte(0x0001, 0xA0);
+        write_progmem_byte(0x0002, 0xC2);
+        write_progmem_byte(0x0003, 0xA1);
+        break;
+
+      case 'f':
+        Serial.println("Vou finalizar a gravacao");
+        digitalWrite(PROG_RST, LOW);
+        delay(1);
+        break;
+        
+    }
+  }
 }
 
 uint8_t send_data(uint8_t data)
@@ -61,7 +108,8 @@ uint8_t send_data(uint8_t data)
   // inicia ack com 0
   uint8_t ack = 0;
   int i;
-  for(i = 0; i<7; i++) {
+  
+  for(i=0; i<8; i++) {
 
     digitalWrite(PROG_SCK, LOW);
 
@@ -74,7 +122,7 @@ uint8_t send_data(uint8_t data)
 
     // Pulso alto no SCK
     digitalWrite(PROG_SCK, HIGH);
-    delayMicroseconds(3);
+    delayMicroseconds(20);
 
     // Lê o bit de ACK e aciona o bit respectivo
     // no ack. Note que recebemos primeiro o MSB.
@@ -84,8 +132,9 @@ uint8_t send_data(uint8_t data)
 
     // parte baixa do pulso
     digitalWrite(PROG_SCK, LOW);
-    delayMicroseconds(3);
+    delayMicroseconds(20);
   }
+
 }
 
 void prog_enable()
