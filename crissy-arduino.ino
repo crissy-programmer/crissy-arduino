@@ -5,6 +5,8 @@
 
 #define DUMMY_DATA 0xAA
 
+uint8_t high_addr = 0x00;
+uint8_t low_addr = 0x00;
 
 /**
  * Envia dados SPI. O MSB é enviado primeiro.
@@ -30,8 +32,18 @@ void chip_rease();
  * 
  * param addr Endereço da memoria de programa de 2 bytes.
  * param data Data para ser gravado na memoria de programa.
+ * param data Dado a ser gravado na memoria.
  */
 void write_progmem_byte(uint16_t addr, uint8_t data);
+
+/**
+ * Escreve na memoria de programa no modo byte.
+ * 
+ * param high_addr Endereço alto da memoria de programa.
+ * param low_addr Endereço baixo da memoria de programa.
+ * param data Dado a ser gravado na memoria.
+ */
+void write_progmem_byte(uint8_t high_addr, uint8_t low_addr, uint8_t data);
 
 void setup() {
 
@@ -79,6 +91,30 @@ void loop() {
         chip_erase();
         break;
 
+      case 'f':
+        Serial.println("Vou finalizar a gravacao");
+        digitalWrite(PROG_RST, LOW);
+        delay(1);
+        break;
+
+      case 'a':
+        Serial.println("Recebendo byte baixo");
+        while(!Serial.available());
+        low_addr = Serial.read();
+        break;
+
+      case 'A':
+        Serial.println("Recebendo byte alto");
+        while(!Serial.available());
+        high_addr = Serial.read();
+        break;
+
+      case 'w':
+        Serial.println("Vou gravar um byte");
+        while(!Serial.available());
+        write_progmem_byte(high_addr, low_addr, Serial.read());
+        break;
+
       case '1':
         Serial.println("Vou gravar o codigo de um led");
         write_progmem_byte(0x0000, 0xC2);
@@ -91,12 +127,6 @@ void loop() {
         write_progmem_byte(0x0001, 0xA0);
         write_progmem_byte(0x0002, 0xC2);
         write_progmem_byte(0x0003, 0xA1);
-        break;
-
-      case 'f':
-        Serial.println("Vou finalizar a gravacao");
-        digitalWrite(PROG_RST, LOW);
-        delay(1);
         break;
         
     }
@@ -153,14 +183,22 @@ void chip_erase()
   send_data(DUMMY_DATA);
 }
 
-void write_progmem_byte(uint16_t addr, uint8_t data)
+void write_progmem_byte(uint8_t high_addr, uint8_t low_addr, uint8_t data)
 {
-  uint8_t high_addr = ( (addr & 0xF0) >> 8 );
-  uint8_t low_addr = ( addr & 0x0F );
-
   send_data(0x40);
   send_data(high_addr);
   send_data(low_addr);
   send_data(data);
 }
+
+void write_progmem_byte(uint16_t addr, uint8_t data)
+{
+  uint8_t high_addr = ( (addr & 0xF0) >> 8 );
+  uint8_t low_addr = ( addr & 0x0F );
+
+  write_progmem_byte(high_addr, low_addr, data);
+}
+
+
+
 
